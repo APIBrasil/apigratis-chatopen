@@ -18,13 +18,14 @@ function JWTCheck(req, res, next) {
   
   try {
     // Verifica o token usando a chave secreta
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    //const decoded = jwt.verify(token, process.env.JWT_SECRET);
     // Adiciona os dados do usuário decodificados à requisição para uso nas próximas rotas
     req.userData = decoded;
     next();
   } catch (error) {
     return res.status(401).redirect('/auth');
   }
+
 }
 
 module.exports = JWTCheck;
