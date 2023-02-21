@@ -23,9 +23,7 @@ function JWTCheck(req, res, next) {
     req.userData = decoded;
     next();
   } catch (error) {
-    return res.status(401).redirect('/auth')-send({
-      message: 'Falha na autenticação do token'
-    });
+    return res.status(401).redirect('/auth');
   }
 }
 
