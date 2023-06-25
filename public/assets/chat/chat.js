@@ -1,16 +1,18 @@
-
-//parametro sessao get
 const urlParams = new URLSearchParams(window.location.search);
 const channelName = urlParams?.get('session')?.split(' ')?.join('-')?.toLowerCase()?.trim()?.toLowerCase();
 const contact = urlParams?.get('contact')?.split(' ')?.join('-')?.toLowerCase()?.trim()?.toLowerCase();
 
 // Connect to the server
-const bearer = localStorage.getItem('token')
-const socket = io('http://localhost:9090', {
+const user = localStorage.getItem('user')
+const bearer = JSON.parse(user)?.authorization?.token;
+
+socket = io('https://socket.apibrasil.com.br', {
     query: {
         bearer: bearer,
         channelName: channelName
-    }
+    },
+    transports: ['polling', 'websocket'],
+    upgrade: false,
 });
 
 // Get references to DOM elements
@@ -19,60 +21,58 @@ const chatlist = document.getElementsByClassName('chat-list')[0];
 const messageInput = document.getElementById('messageInput');
 const sendButton = document.getElementById('sendButton');
 
-console.log(`channelName: ${channelName}`);
-
-//window loadd request get async fetch
 window.addEventListener('load', async (event) => {
 
-    //featch /api/profile/number
-    const response_profile = await fetch(`http://localhost:9090/api/profile/${channelName}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+    DeviceToken = JSON.parse(localStorage.getItem('device'))?.device_token;
+    SecretKey = JSON.parse(localStorage.getItem('device'))?.api_info?.search;
+    PublicToken = JSON.parse(localStorage.getItem('device'))?.server?.apitoken_public;
 
-    const data_profile = await response_profile.json();
+    const Bearer = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user'))?.authorization?.token : null;
 
-    console.log('data_profile:', data_profile);
+    headers = { 
+        "Content-Type": "application/json", 
+        "SecretKey": SecretKey,
+        "PublicToken": PublicToken, 
+        "DeviceToken": DeviceToken,
+        "Authorization": `Bearer  ${Bearer}`
+    }
+    
+    getAllChats();
 
-    // parameter welcome == true 
-    //chat-header display none
     if(urlParams?.get('welcome') === 'true') {
         
         $('.chat-header-1').css('display', 'none');
         $('.chat-message').css('display', 'none');
 
-        //chat-history height 600px
         $('.chat-history').css('height', '550px');
-        //chat-history background image https://w0.peakpx.com/wallpaper/818/148/HD-wallpaper-whatsapp-background-cool-dark-green-new-theme-whatsapp.jpg
         $('.chat-history').css('background-image', 'url(https://conteudo.imguol.com.br/c/noticias/2015/01/23/logo-whatsapp-whatsapp-na-web-1422023070243_300x300.jpg)');
-        //baackground color #000
         $('.chat-history').css('background-color', 'rgb(252 252 253)');
-        //background-size cover opacity 0.5
         $('.chat-history').css('background-size', 'auto');
         $('.chat-history').css('background-repeat', 'no-repeat');
         $('.chat-history').css('background-position', 'center');
         $('.chat-history').css('opacity', '0.5');
 
     }
+});
 
-    const response = await fetch(`http://localhost:9090/api/chats/${channelName}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    const data = await response.json();
-    console.log('data:', data);
+getAllChats = async () => {
+
+    axios({
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `https://cluster.apigratis.com/api/v1/whatsapp/getAllChats`,
+        headers: headers,
+    })
+    .then(function (response) {
+        
+    data = response?.data;
+
+    console.log('data:', data)
 
     if (data?.response?.contacts?.length > 0) {
         chatlist.innerHTML = '';
         data?.response?.contacts?.forEach((item) => {
 
-            console.log('item:', item);
-            
-            //id author user
             if(item?.isUser === true) {
 
                 let content_html = `<div class="chat-item d-flex pl-3 pr-0 pt-3 pb-3 getChatByNumber _${item?.contact?.id?.user}" id="${item?.contact?.id?.user}" title="${item?.contact?.formattedName}" onclick="window.history.pushState({}, '', '?contact=${item?.contact?.id?.user}&session=${channelName}');">
@@ -116,105 +116,111 @@ window.addEventListener('load', async (event) => {
             }
         });
 
-        //if contact parameter add class active
         if (contact) {
             document.getElementById(contact)?.classList.add('active');
-
-            //click
             document.getElementById(contact)?.click();
-            //fish scrool down
-
         }
 
     }else{
         chatlist.innerHTML = '';
         chatlist.innerHTML = 'Nenhum contato encontrado';
     }
-
-});
-
-getChatByNumber = async (number) => {
-
-    const response = await fetch(`http://localhost:9090/api/chat/${number}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        
+    })
+    .catch(function (error) {
+        
+        console.log('error:', error);
+        
     });
-
-    const data = await response.json();
-    console.log('data:', data);
-    const messageElement = document.createElement('div');
-    messageElement.className = 'message';
-
-    if (data?.response?.data?.length > 0) {
-
-        messages.innerHTML = '';
-
-        data?.response?.data?.forEach((message) => {
-
-            console.log('message:', message);
-            
-            if (message?.type === 'image') {
-                let base64 = message?.base64;
-                let img = document.createElement('img');
-                img.src = base64;
-                messageElement.appendChild(img);
-                messages.appendChild(messageElement);
-            }
-
-            if (message?.type === 'text' || message?.type === 'chat') {
-                messageElement.textContent = message?.mensagem
-
-                if(message?.author == '.'){
-                    
-                    content_html = `<div class="left-chat-message fs-13 mb-2">
-                        <p class="mb-0 mr-3 pr-4"> ${message?.mensagem} </p>
-                        <div class="message-options">
-                        <div class="message-time">06:15</div>
-                        <div class="message-arrow"><i class="text-muted la
-                            la-angle-down fs-17"></i></div>
-                        </div>
-                    </div>`
-                    
-                }else{
-
-                    content_html = `<div class="d-flex flex-row-reverse mb-2">
-                    <div class="right-chat-message fs-13 mb-2">
-                      <div class="mb-0 mr-3 pr-4">
-                        <div class="d-flex flex-row">
-                          <div class="pr-2"> ${message?.mensagem} </div>
-                          <div class="pr-4"></div>
-                        </div>
-                      </div>
-                      <div class="message-options dark">
-                        <div class="message-time">
-                          <div class="d-flex flex-row">
-                            <div class="mr-2">06:49</div>
-                            <div class="svg15 double-check"></div>
-                          </div>
-                        </div>
-                        <div class="message-arrow"><i class="text-muted
-                            la la-angle-down fs-17"></i></div>
-                      </div>
-                    </div>
-                  </div>`
-                }
-
-                messages.innerHTML += content_html;
-            }
-
-        });
-    
-        setTimeout(() => {
-            $(".chat-history").scrollTop($(".chat-history")[0].scrollHeight);
-        }, 1000);
-    
-    }
 
 }
 
-//getChatByNumber on click get chat by number
+async function getChatByNumber(number) {
+
+    axios({
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `https://cluster.apigratis.com/api/v1/whatsapp/getMessagesChat`,
+        headers: headers,
+        data: {
+            "number": number
+        }
+    })
+    .then(async function (response) {
+
+        let data = response?.data;
+
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message';
+
+        if (data?.response?.data?.length > 0) {
+
+            messages.innerHTML = '';
+
+            data?.response?.data?.forEach((message) => {
+
+                if (message?.type === 'image') {
+                    let base64 = message?.body;
+                    let img = document.createElement('img');
+                    img.src = base64;
+
+                    if(message?.body){
+                        content_html = `<div class="left-chat-message fs-13 mb-2">
+                                    <img src="${base64}" alt="image" width="100px" height="100px">
+                                <div class="message-options">
+                                <div class="message-time">06:15</div>
+                                <div class="message-arrow"><i class="text-muted la
+                                    la-angle-down fs-17"></i></div>
+                                </div>
+                            </div>`
+
+                        messages.innerHTML += content_html;
+                    }
+                    
+                }
+
+                if (message?.type === 'text' || message?.type === 'chat') {
+                    messageElement.textContent = message?.body
+
+                    if(message?.fromMe == false){
+                        
+                        content_html = `<div class="left-chat-message fs-13 mb-2">
+                            <p class="mb-0 mr-3 pr-4"> ${message?.body} </p>
+                            <div class="message-options">
+                            <div class="message-time">06:15</div>
+                            <div class="message-arrow"><i class="text-muted la
+                                la-angle-down fs-17"></i></div>
+                            </div>
+                        </div>`
+                        
+                    }else{
+
+                        content_html = `<div class="d-flex flex-row-reverse mb-2">
+                        <div class="right-chat-message fs-13 mb-2">
+                          <div class="mb-0 mr-3 pr-4">
+                            <div class="d-flex flex-row">
+                              <div class="pr-2"> ${message?.body} </div>
+                              <div class="pr-4"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>`
+                    }
+
+                    messages.innerHTML += content_html;
+                }
+
+            });
+
+        } else {
+            messages.innerHTML = '<div class="message">Nenhuma mensagem encontrada</div>';
+
+        }
+
+    })
+}
+
+
 chatlist.addEventListener('click', async (event) => {
 
     $('.chat-history').scrollTop(0);
@@ -266,7 +272,6 @@ messageInput.addEventListener("keyup", function(event) {
         messageInput.value = '';
         
     }
-    $('.scrollable-chat-panel').perfectScrollbar('update');
 });
 
 socket.on('chat-send', (message) => {
@@ -282,8 +287,6 @@ socket.on('chat-send', (message) => {
     </div>`
 
     messages.innerHTML += content_html;
-
-    $('.scrollable-chat-panel').perfectScrollbar('update');
 
 });
 
@@ -302,7 +305,6 @@ socket.on('chat-received', (message) => {
 
         messages.appendChild(messageElement);
 
-        $('.scrollable-chat-panel').perfectScrollbar('update');
     }
 
     if (message?.data?.type === 'text') {
@@ -330,7 +332,6 @@ socket.on('chat-received', (message) => {
         </div>`
         
         messages.innerHTML += content_html;
-        $('.scrollable-chat-panel').perfectScrollbar('update');
 
     }
 
@@ -342,8 +343,6 @@ socket.on('chat-received', (message) => {
         messageElement.appendChild(audio);
         messages.appendChild(messageElement);
 
-        $('.scrollable-chat-panel').perfectScrollbar('update');
-
     }
 
     if (message?.data?.type === 'video') {
@@ -353,8 +352,6 @@ socket.on('chat-received', (message) => {
         video.controls = true;
         messageElement.appendChild(video);
         messages.appendChild(messageElement);
-
-        $('.scrollable-chat-panel').perfectScrollbar('update');
 
     }
 
@@ -389,7 +386,6 @@ socket.on('chat-received', (message) => {
         </div>`
 
         messages.innerHTML += content_html;
-        $('.scrollable-chat-panel').perfectScrollbar('update');
 
     }
 

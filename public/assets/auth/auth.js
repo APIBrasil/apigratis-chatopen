@@ -1,17 +1,17 @@
 window.addEventListener('load', () => {
-    //body add class login breakpoint-1024
     $("body").addClass("login breakpoint-1024");
 });
 
 const form = document.querySelector('form');
 
 form.addEventListener('submit', async (e) => {
+    
     e.preventDefault();
 
     const email = form.email.value;
     const password = form.password.value;
 
-    const response = await fetch('/api/auth', {
+    const response = await fetch('https://cluster-01.apigratis.com/api/v1/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -19,9 +19,7 @@ form.addEventListener('submit', async (e) => {
         body: JSON.stringify({ email, password })
     });
 
-    const data = await response.json();
-
-    console.log(data);
+    let data = await response.json();
 
     if (data.error == true ) {
 
@@ -29,15 +27,15 @@ form.addEventListener('submit', async (e) => {
         $('.alert').text(data.message);
 
     } else {
+        
+        localStorage.setItem('user', JSON.stringify(data));
 
-        // const cellphone = data?.user?.cellphone;
-        let ddi = `55`;
-        let ddd = data?.user?.cellphone?.substring(0, 2);
-        let cellphone = data?.user?.cellphone?.substring(2, 11);
+        const user = data?.user;
+        const device = user?.devices[0]; //your loop where you are getting the data
+        const search = user?.devices[0]?.search;
 
-        let mobile = `${ddi}${ddd}${cellphone}`;
+        localStorage.setItem('device', JSON.stringify(device));
 
-        window.location.href = `/chat?welcome=true&session=${mobile}`
-
+        window.location.href = `/chat?welcome=true&session=${search}`
     }
 });

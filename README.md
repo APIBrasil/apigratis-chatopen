@@ -1,10 +1,10 @@
-# 📢 APIGRATIS Chat Open
-Essa versão é apenas parte de um estudo para criação de algo maior, em breve mais novidades!
+# 📢 APIBRASIL - Chat Open
+Esse chat é integrado com a plataforma APIBRASIL, tem como ideia inicial apenas estudos e ajudar a comunidade a entender como funciona a comunicação com as APIs, você pode usar esse exemplo de forma comercial, sem restrições!
 
-# Parceiro de API
+# Obtenha suas credenciais
 https://apibrasil.com.br
 
-# Para instalar
+# Instalando o projeto
 ```cd /opt```
 
 ```git clone git@github.com:jhowbhz/apigratis-chatopen.git```
@@ -18,5 +18,14 @@ https://apibrasil.com.br
 # Pronto!
 http://localhost:9090/auth
 
+# Tela de login
+Com essa tela é possível você autenticar no site APIBRASIL com suas credenciais do WhatsApp.
+
+![image](https://i.imgur.com/Uz6EhuQ.png)
 # Area do chat
-![image](https://user-images.githubusercontent.com/31408451/220363750-30cb3a95-52db-4186-91b4-1f5b9859878a.png)
+Nessa tela é possível utilizar alguns métodos, como exemplo o getAllChats e getMessagesChat
+
+![image](https://i.imgur.com/k9ucpte.png)
+
+
+Em breve irei criar mais exemplos!

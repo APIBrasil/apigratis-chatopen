@@ -5,16 +5,16 @@ function JWTCheck(req, res, next) {
   // const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
   //get all cookies headers
-  const cookies = req.headers.cookie;
+  // const cookies = req.headers.cookie;
 
-  //get token from cookies
-  const token = cookies && cookies.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+  // //get token from cookies
+  // const token = cookies && cookies.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
 
-  console.log('token', token);
+  // console.log('token', token);
 
-  if (!token) {
-    return res.status(401).redirect('/auth');
-  }
+  // if (!token) {
+  //   return res.status(401).redirect('/auth');
+  // }
   
   // try {
   //   // Verifica o token usando a chave secreta
@@ -25,6 +25,7 @@ function JWTCheck(req, res, next) {
   // } catch (error) {
   //   return res.status(401).redirect('/auth');
   // }
+  next();
 
 }
 
