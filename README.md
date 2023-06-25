@@ -22,7 +22,7 @@ http://localhost:9090/auth
 Com essa tela é possível você autenticar no site APIBRASIL com suas credenciais do WhatsApp.
 
 ![image](https://i.imgur.com/Uz6EhuQ.png)
-# Area do chat
+# Tela do chat
 Nessa tela é possível utilizar alguns métodos, como exemplo o getAllChats e getMessagesChat
 
 ![image](https://i.imgur.com/k9ucpte.png)
